@@ -11,5 +11,8 @@ Calculateur pour partager l'huile d'olive et la facture du moulin entre plusieur
 - Pondération olives / travail (50/50 par défaut, le partage « à moitié »).
 - Prix du moulin au kilo d'olives et rendement en litres pour 100 kg.
 - Export PDF du partage, prêt à imprimer ou à envoyer par e-mail.
+- Bouton « Vider le formulaire » pour repartir de zéro.
+- Sur téléphone, la page se partage en trois onglets (Saisie, Partage, Réglages), avec le partage en direct toujours visible pendant la saisie.
+- Titre de la page modifiable en cliquant dessus.
 
 Les récoltes sont enregistrées dans le navigateur de chaque appareil.

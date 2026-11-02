@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap">
 <style>
-/* Layout: harvest bar on top; two-column workbench below (households and settings left, live split right); one column on phones */
+/* Layout: phones get three views (Saisie, Partage, Réglages) behind a sticky segmented control, with a live share strip pinned at the bottom of Saisie; from 900px all views show as a two-column workbench */
 :root {
   --bg: #F5F6F1;
   --surface: #FFFFFF;
@@ -23,44 +23,59 @@
   --track: #ECEEE5;
   --font-display: "Alegreya", Georgia, "Times New Roman", serif;
   --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root {
     --bg: #131611; --surface: #1B1F18; --ink: #E8EBE0; --muted: #A2A996; --line: #31372B;
     --green: #A3B860; --ripe: #C68FC2; --on-seg: #131611; --danger: #F08A80; --focus: #A3B860; --track: #252A21;
     color-scheme: dark;
   }
 }
-:root[data-theme="dark"] {
-  --bg: #131611; --surface: #1B1F18; --ink: #E8EBE0; --muted: #A2A996; --line: #31372B;
-  --green: #A3B860; --ripe: #C68FC2; --on-seg: #131611; --danger: #F08A80; --focus: #A3B860; --track: #252A21;
-  color-scheme: dark;
-}
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 24px 48px;
+  padding-block: 20px 40px;
 }
-.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-header { display: flex; flex-direction: column; gap: 6px; }
-.eyebrow { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0; }
-h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 6vw, 42px); line-height: 1.1; margin: 0; text-wrap: balance; }
-h2 { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin: 0; text-wrap: balance; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 10; }
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+header { display: flex; flex-direction: column; gap: 4px; }
+.eyebrow { font-size: 12px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); margin: 0; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 7vw, 42px); line-height: 1.1; margin: 0; }
 h1 input.title-input {
   font: inherit; color: inherit; background: transparent; border: 0; border-bottom: 2px dashed transparent;
   border-radius: 0; padding: 0 0 2px; margin: 0; min-height: 0; width: 100%; min-width: 0;
 }
 h1 input.title-input:hover { border-bottom-color: var(--line); }
 h1 input.title-input:focus-visible { outline: none; border-bottom-color: var(--green); }
-.lede { margin: 0; color: var(--muted); max-width: 62ch; }
-.grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
-@media (min-width: 900px) { .grid { grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); } }
-.col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.section-head { display: flex; flex-direction: column; gap: 4px; }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: 21px; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; font-size: 15px; }
+
+.tabbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 6; background: var(--bg); padding-block: 6px; }
+.tabs { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.tabs button { flex: 1; border: 0; border-radius: 9px; min-height: 42px; font-weight: 600; font-size: 15px; color: var(--muted); background: transparent; }
+.tabs button[aria-selected="true"] { background: var(--green); color: var(--on-seg); }
+
+.grid { display: flex; flex-direction: column; gap: 16px; }
+.col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+@media (max-width: 899px) {
+  body[data-view="input"] #view-results, body[data-view="input"] #view-settings,
+  body[data-view="results"] #view-input, body[data-view="results"] #view-settings,
+  body[data-view="settings"] #view-input, body[data-view="settings"] #view-results { display: none; }
+}
+@media (min-width: 900px) {
+  .tabbar, .live { display: none !important; }
+  .grid { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); grid-template-areas: "input results" "settings results"; gap: 20px; align-items: start; }
+  #view-input { grid-area: input; }
+  #view-results { grid-area: results; }
+  #view-settings { grid-area: settings; }
+}
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.section-head { display: flex; flex-direction: column; gap: 2px; padding-top: 4px; }
 .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .chip { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 label, .lbl { font-size: 14px; color: var(--muted); }
@@ -68,8 +83,8 @@ label, .lbl { font-size: 14px; color: var(--muted); }
 .unit { display: inline-flex; align-items: center; gap: 6px; }
 .unit span { font-size: 14px; color: var(--muted); }
 input[type="text"], select {
-  font: inherit; color: var(--ink); background: var(--surface);
-  border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-height: 40px;
+  font: inherit; font-size: 16px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-height: 42px;
 }
 input.num { width: 5.5rem; text-align: right; font-variant-numeric: tabular-nums; }
 input.txt { width: 100%; min-width: 0; }
@@ -77,51 +92,66 @@ select { width: 100%; min-width: 0; }
 input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 input[aria-invalid="true"] { border-color: var(--danger); }
 .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.hb-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-@media (min-width: 640px) { .hb-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
-.hh-top, .w-top { display: flex; gap: 8px; align-items: center; }
+.hb-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+@media (min-width: 600px) { .hb-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+
+.hh-top { display: flex; gap: 8px; align-items: center; }
 .name-input {
-  font-family: var(--font-display) !important; font-weight: 700; font-size: 21px !important;
+  font-family: var(--font-display) !important; font-weight: 700; font-size: 20px !important;
   flex: 1; min-width: 0; border-color: transparent !important; background: transparent !important; padding-left: 6px; margin-left: -6px;
 }
 .name-input:hover { border-color: var(--line) !important; }
 .workers { display: flex; flex-direction: column; }
-.worker { border-top: 1px solid var(--line); padding-block: 12px; display: flex; flex-direction: column; gap: 8px; }
-.w-hours { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.worker { border-top: 1px solid var(--line); padding-block: 12px; display: grid; gap: 8px; }
+.w-top { display: flex; gap: 8px; align-items: center; }
+.w-total { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.w-hours { display: grid; grid-template-columns: repeat(auto-fill, minmax(4.6rem, 1fr)); gap: 8px; }
 .mini { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
-.mini input { width: 4.4rem; }
-.w-total { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; padding-bottom: 9px; margin-left: auto; }
+.mini input { width: 100%; }
 .w-move { display: flex; align-items: center; gap: 8px; }
 .w-move span { font-size: 13px; white-space: nowrap; }
+.w-move select { min-height: 38px; padding-block: 4px; }
 .hh-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 12px; }
 .err { color: var(--danger); font-size: 13px; margin: 0; }
 .hint { font-size: 14px; color: var(--muted); margin: 0; max-width: 64ch; }
-input[type="range"] { width: 100%; accent-color: var(--green); }
+input[type="range"] { width: 100%; accent-color: var(--green); min-height: 32px; }
 .weight-read { font-size: 15px; font-variant-numeric: tabular-nums; }
 .weight-read b { font-weight: 600; }
-.stepper { display: inline-flex; align-items: center; gap: 8px; }
+.stepper { display: inline-flex; align-items: center; gap: 6px; }
 .stepper output { min-width: 4.5rem; text-align: center; font-variant-numeric: tabular-nums; }
+.stepper button { width: 42px; padding: 0; font-size: 20px; }
 .btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 button {
   font: inherit; font-size: 14px; color: var(--ink); background: transparent; border: 1px solid var(--line);
-  border-radius: 8px; padding: 8px 14px; cursor: pointer; min-height: 40px;
+  border-radius: 8px; padding: 8px 14px; cursor: pointer; min-height: 42px;
 }
 button:hover { border-color: var(--muted); }
 button:disabled { opacity: 0.5; cursor: default; }
 button.primary { background: var(--green); border-color: var(--green); color: var(--on-seg); font-weight: 600; }
 button.quiet { border-color: transparent; color: var(--muted); padding-inline: 10px; }
 button.quiet:hover { border-color: var(--line); color: var(--ink); }
+button.icon-btn { width: 42px; padding: 0; font-size: 16px; flex: none; }
 button.add { border-style: dashed; color: var(--green); font-weight: 600; }
 button.armed { border-color: var(--danger) !important; color: var(--danger) !important; }
+button.wide { width: 100%; }
 .status { font-size: 14px; color: var(--muted); }
 .status.ok { color: var(--green); }
 .status.bad { color: var(--danger); }
+
+.live { position: sticky; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 4; border-color: var(--green); gap: 8px; padding-block: 10px; }
+.live-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.live-head button { min-height: 34px; padding-block: 4px; color: var(--green); font-weight: 600; }
+.live-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { display: inline-flex; gap: 6px; align-items: baseline; background: var(--track); border-radius: 999px; padding: 3px 10px; font-size: 14px; max-width: 100%; }
+.pill span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pill b { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
 .totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
 @media (min-width: 560px) { .totals { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .totals div { display: flex; flex-direction: column; }
 .totals .lbl { font-size: 13px; }
-.totals .val { font-family: var(--font-display); font-weight: 700; font-size: 24px; font-variant-numeric: tabular-nums lining-nums; }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.totals .val { font-family: var(--font-display); font-weight: 700; font-size: 23px; font-variant-numeric: tabular-nums lining-nums; }
+.legend { display: flex; gap: 6px 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 .sw.g { background: var(--green); }
@@ -139,6 +169,16 @@ button.armed { border-color: var(--danger) !important; color: var(--danger) !imp
 .seg.r { background: var(--ripe); margin-left: 2px; }
 .seg.r.first { margin-left: 0; }
 .scale { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.res-cards { display: grid; gap: 10px; }
+.res-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 4px; }
+.res-card .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.res-card .top strong { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.res-card .big { font-family: var(--font-display); font-weight: 700; font-size: 22px; font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+.res-card .meta { display: flex; flex-wrap: wrap; gap: 2px 16px; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.res-card .meta b { color: var(--ink); font-weight: 600; }
+.res-card .meta.small { font-size: 13px; }
+.res-card.total { background: var(--track); border-color: transparent; }
 .table-wrap { overflow-x: auto; }
 table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 15px; min-width: 480px; }
 .split th { font-size: 13px; font-weight: 600; color: var(--muted); text-align: right; padding: 8px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
@@ -146,59 +186,65 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
 .split th:first-child, .split td:first-child { text-align: left; padding-left: 0; white-space: normal; }
 .split td.share { font-weight: 600; }
 .split tfoot td { border-bottom: 0; font-weight: 600; }
+@media (max-width: 599px) { .table-wrap { display: none; } }
+@media (min-width: 600px) { .res-cards { display: none; } }
 .note { font-size: 14px; color: var(--muted); margin: 0; max-width: 64ch; }
 @media (prefers-reduced-motion: reduce) { .seg { transition: none; } }
 </style>
 </head>
-<body>
+<body data-view="input">
 <div class="wrap">
   <header>
     <p class="eyebrow">Calculateur de récolte d'olives</p>
     <h1><input type="text" id="page-title" class="title-input" value="Partage de l'huile d'olive" aria-label="Titre de la page, modifiable" title="Cliquez pour modifier le titre" spellcheck="false"></h1>
-    <p class="lede">Indiquez qui a cueilli, combien d'heures, et combien de kilos viennent des arbres de chaque foyer. L'huile et la facture du moulin se répartissent au fil de la saisie, et chaque récolte est conservée dans ce navigateur pour les années suivantes. Le titre se modifie en cliquant dessus.</p>
+    <p class="lede">Indiquez qui a cueilli, combien d'heures, et combien de kilos viennent des arbres de chaque foyer. Le partage se calcule au fil de la saisie. Le titre se modifie en cliquant dessus.</p>
   </header>
 
+  <div class="tabbar">
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button type="button" role="tab" id="tab-input" data-view="input" aria-controls="view-input" aria-selected="true">Saisie</button>
+      <button type="button" role="tab" id="tab-results" data-view="results" aria-controls="view-results" aria-selected="false">Partage</button>
+      <button type="button" role="tab" id="tab-settings" data-view="settings" aria-controls="view-settings" aria-selected="false">Réglages</button>
+    </nav>
+  </div>
+
   <section class="card" id="loading">
-    <p class="hint">Chargement de vos récoltes enregistrées…</p>
+    <p class="hint">Chargement de vos récoltes…</p>
   </section>
 
-  <section class="card" id="harvest-bar" aria-label="Récolte" hidden>
-    <div class="hb-grid">
-      <label class="field" for="harvest-select"><span>Récoltes enregistrées</span><select id="harvest-select"></select></label>
-      <label class="field" for="harvest-name"><span>Nom de la récolte</span><input class="txt" type="text" id="harvest-name"></label>
-    </div>
-    <div class="row">
-      <span class="status" id="save-status" aria-live="polite"></span>
-      <div class="btns"><button type="button" id="new-harvest">Nouvelle récolte</button><button type="button" class="quiet" id="delete-harvest">Supprimer cette récolte</button></div>
-    </div>
-    <p class="hint">Une nouvelle récolte reprend les mêmes foyers et cueilleurs, avec tous les chiffres remis à zéro. Les récoltes sont enregistrées dans ce navigateur, sur cet appareil.</p>
-  </section>
-
-  <div class="grid" id="app" hidden>
-    <div class="col">
-      <div class="section-head">
-        <h2>Foyers et cueilleurs</h2>
-        <p class="hint">Chaque foyer apporte les olives de ses propres arbres. Le menu « Foyer » de chaque cueilleur permet de le déplacer dans un autre foyer ou dans un nouveau foyer à lui.</p>
-      </div>
-      <div class="col" id="households"></div>
-      <div class="btns"><button type="button" class="add" id="add-household">+ Ajouter un foyer</button></div>
-
-      <section class="card" aria-labelledby="set-title">
-        <div class="card-head"><h2 id="set-title">Pondération</h2></div>
+  <main class="grid" id="app" hidden>
+    <div class="col" id="view-input" role="tabpanel" aria-labelledby="tab-input">
+      <section class="card" aria-label="Récolte">
+        <div class="hb-grid">
+          <label class="field" for="harvest-select"><span>Récoltes enregistrées</span><select id="harvest-select"></select></label>
+          <label class="field" for="harvest-name"><span>Nom de la récolte</span><input class="txt" type="text" id="harvest-name"></label>
+        </div>
         <div class="row"><span class="lbl">Jours de récolte</span>
           <span class="stepper"><button type="button" id="days-minus" aria-label="Retirer un jour">−</button><output id="days-count" aria-live="polite">2 jours</output><button type="button" id="days-plus" aria-label="Ajouter un jour">+</button></span>
         </div>
-        <div class="row"><label for="weight">Olives ou travail</label><span class="weight-read" id="weight-read"><b>50 %</b> olives · <b>50 %</b> travail</span></div>
-        <input type="range" id="weight" min="0" max="100" step="5" value="50" aria-describedby="weight-hint">
-        <p class="hint" id="weight-hint">50 % correspond au partage traditionnel « à moitié », où la cueillette compte autant que la propriété des arbres. Glissez vers la gauche pour donner plus de poids au travail.</p>
-        <div class="row"><label for="price">Prix du moulin</label><span class="unit"><input class="num" type="text" inputmode="decimal" id="price" value="1,00"><span>€ par kg d'olives</span></span></div>
-        <div class="row"><label for="yield">Rendement attendu</label><span class="unit"><input class="num" type="text" inputmode="decimal" id="yield" value="16"><span>L pour 100 kg</span></span></div>
-        <p class="err" id="err-s" hidden></p>
-        <div class="btns"><button type="button" id="preset">Remettre à 50/50</button></div>
+        <span class="status" id="save-status" aria-live="polite"></span>
+        <div class="btns">
+          <button type="button" id="new-harvest">Nouvelle récolte</button>
+          <button type="button" id="reset-form">Vider le formulaire</button>
+          <button type="button" class="quiet" id="delete-harvest">Supprimer</button>
+        </div>
+        <p class="hint">« Nouvelle récolte » garde les mêmes foyers et cueilleurs avec les chiffres à zéro. « Vider le formulaire » efface tout le contenu de cette récolte.</p>
+      </section>
+
+      <div class="section-head">
+        <h2>Foyers et cueilleurs</h2>
+        <p class="hint">Chaque foyer apporte les olives de ses arbres. Le menu « Foyer » d'un cueilleur le déplace dans un autre foyer ou dans un nouveau foyer à lui.</p>
+      </div>
+      <div class="col" id="households"></div>
+      <button type="button" class="add wide" id="add-household">+ Ajouter un foyer</button>
+
+      <section class="card live" aria-label="Partage en direct">
+        <div class="live-head"><span class="lbl">Partage en direct</span><button type="button" class="quiet" id="live-more">Voir le détail</button></div>
+        <div class="live-chips" id="live-chips"></div>
       </section>
     </div>
 
-    <div class="col">
+    <div class="col" id="view-results" role="tabpanel" aria-labelledby="tab-results">
       <section class="card" aria-labelledby="res-title">
         <div class="card-head"><h2 id="res-title">Le partage</h2><span class="chip" id="res-weight"></span></div>
         <div class="totals">
@@ -215,6 +261,7 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
 
       <section class="card" aria-labelledby="tbl-title">
         <div class="card-head"><h2 id="tbl-title">Qui reçoit quoi</h2><span class="chip" id="per-litre"></span></div>
+        <div class="res-cards" id="res-cards"></div>
         <div class="table-wrap">
           <table class="split">
             <thead><tr><th>Foyer</th><th>% olives</th><th>% heures</th><th>Part</th><th>Huile</th><th>Paie</th></tr></thead>
@@ -222,19 +269,33 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
             <tfoot><tr id="foot"></tr></tfoot>
           </table>
         </div>
-        <p class="note">La part de chaque foyer combine sa part des olives et sa part des heures, selon la pondération choisie. Le moulin facture au poids des olives et la facture est partagée dans les mêmes proportions, si bien que chacun paie le même prix par litre.</p>
         <p class="note" id="nohours" hidden>Aucune heure saisie, le partage se fait donc uniquement sur les olives.</p>
-        <div class="btns"><button type="button" class="primary" id="export-pdf">Exporter en PDF</button><span class="status" id="pdf-status" aria-live="polite"></span></div>
+        <button type="button" class="primary wide" id="export-pdf">Exporter en PDF</button>
+        <span class="status" id="pdf-status" aria-live="polite"></span>
         <p class="hint">Le PDF reprend le partage, le tableau et le détail des heures, prêt à imprimer ou à envoyer par e-mail.</p>
       </section>
     </div>
-  </div>
+
+    <div class="col" id="view-settings" role="tabpanel" aria-labelledby="tab-settings">
+      <section class="card" aria-labelledby="set-title">
+        <div class="card-head"><h2 id="set-title">Pondération et moulin</h2></div>
+        <div class="row"><label for="weight">Olives ou travail</label><span class="weight-read" id="weight-read"><b>50 %</b> olives · <b>50 %</b> travail</span></div>
+        <input type="range" id="weight" min="0" max="100" step="5" value="50" aria-describedby="weight-hint">
+        <p class="hint" id="weight-hint">50 % correspond au partage traditionnel « à moitié », où la cueillette compte autant que la propriété des arbres. Glissez vers la gauche pour donner plus de poids au travail.</p>
+        <button type="button" id="preset">Remettre à 50/50</button>
+        <div class="row"><label for="price">Prix du moulin</label><span class="unit"><input class="num" type="text" inputmode="decimal" id="price" value="1,00" placeholder="0"><span>€ / kg d'olives</span></span></div>
+        <div class="row"><label for="yield">Rendement attendu</label><span class="unit"><input class="num" type="text" inputmode="decimal" id="yield" value="16" placeholder="16"><span>L / 100 kg</span></span></div>
+        <p class="err" id="err-s" hidden></p>
+        <p class="note">La part de chaque foyer combine sa part des olives et sa part des heures, selon la pondération choisie. Le moulin facture au poids des olives et la facture est partagée dans les mêmes proportions, si bien que chacun paie le même prix par litre.</p>
+        <p class="note">Les récoltes sont enregistrées dans ce navigateur, sur cet appareil.</p>
+      </section>
+    </div>
+  </main>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 (function () {
-  try { document.documentElement.lang = 'fr'; } catch (e) {}
   var $ = function (id) { return document.getElementById(id); };
   var LS_KEY = 'harvest-split-v2';
   var MAX_DAYS = 7;
@@ -252,6 +313,7 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     var v = Number(raw);
     return { v: v, ok: Number.isFinite(v) && v >= 0 };
   };
+
   var TITLE_KEY = 'harvest-split-title';
   var DEFAULT_TITLE = "Partage de l'huile d'olive";
   var pageTitle = function () { return $('page-title').value.trim() || DEFAULT_TITLE; };
@@ -267,26 +329,92 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     $('page-title').addEventListener('blur', function () { if (!$('page-title').value.trim()) $('page-title').value = DEFAULT_TITLE; });
     $('page-title').addEventListener('keydown', function (e) { if (e.key === 'Enter') e.target.blur(); });
   })();
+
   var hhName = function (h) { return h.name.trim() || 'Foyer sans nom'; };
   var daysLabel = function (n) { return n + (n === 1 ? ' jour' : ' jours'); };
 
-  var db = null, mode = 'local', canWrite = true;
+  var VIEW_HASH = { input: 'saisie', results: 'partage', settings: 'reglages' };
+  function setView(v) {
+    if (!VIEW_HASH[v]) v = 'input';
+    document.body.dataset.view = v;
+    document.querySelectorAll('.tabs button').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.view === v ? 'true' : 'false'); });
+    try { history.replaceState(null, '', '#' + VIEW_HASH[v]); } catch (e) {}
+  }
+  function viewFromHash() {
+    var h = (location.hash || '').slice(1);
+    for (var k in VIEW_HASH) { if (VIEW_HASH[k] === h) return k; }
+    return 'input';
+  }
+  setView(viewFromHash());
+  window.addEventListener('hashchange', function () { setView(viewFromHash()); });
+  document.querySelectorAll('.tabs button').forEach(function (b) {
+    b.addEventListener('click', function () { setView(b.dataset.view); window.scrollTo(0, 0); });
+  });
+
+  function seed() {
+    return {
+      'harvest-2026': {
+        name: 'Récolte 2026', days: 2,
+        households: [{ id: 'hh-a', name: 'Foyer A', olives: 300 }, { id: 'hh-ours', name: 'Notre foyer', olives: 30 }, { id: 'hh-b', name: 'Foyer B', olives: 100 }],
+        workers: [{ id: 'w-a', name: 'A', household: 'hh-a', hours: [14, 12] }, { id: 'w-me', name: 'Moi', household: 'hh-ours', hours: [14, 12] }, { id: 'w-wife', name: 'Ma femme', household: 'hh-ours', hours: [10, 12] }, { id: 'w-b', name: 'B', household: 'hh-b', hours: [10, 12] }],
+        weight: 50, price: 1, yield: 16, updatedAt: '2026-11-02T06:35:00.000Z'
+      }
+    };
+  }
+
+  var LocalDB = (function () {
+    var KEY = 'harvest-split-store-v1';
+    function load() { try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); return o && typeof o === 'object' && o.harvests ? o : null; } catch (e) { return null; } }
+    function store(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+    return {
+      collection: function () {
+        var q = {
+          doc: function () { return { id: 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }; },
+          orderBy: function () { return q; },
+          limit: function () { return q; },
+          get: function () {
+            var o = load();
+            if (!o) { o = { harvests: seed() }; try { store(o); } catch (e) {} }
+            return Promise.resolve({ docs: Object.keys(o.harvests).map(function (id) { return { id: id, exists: true, data: function () { return o.harvests[id]; } }; }) });
+          }
+        };
+        return q;
+      },
+      doc: function (path) {
+        var id = path.split('/')[1];
+        return {
+          set: function (body) { return new Promise(function (res, rej) { try { var o = load() || { harvests: {} }; o.harvests[id] = body; store(o); res(); } catch (e) { rej({ code: 'storage' }); } }); },
+          delete: function () { return new Promise(function (res, rej) { try { var o = load() || { harvests: {} }; delete o.harvests[id]; store(o); res(); } catch (e) { rej({ code: 'storage' }); } }); }
+        };
+      }
+    };
+  })();
+
+  var BrowserDownloads = {
+    save: function (req) {
+      var url = URL.createObjectURL(req.data);
+      var a = document.createElement('a');
+      a.href = url; a.download = req.filename; a.rel = 'noopener';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 4000);
+      return Promise.resolve({ status: 'saved' });
+    }
+  };
+
+  var db = LocalDB, mode = 'local';
   var docs = {};
   var state = null;
   var lastReport = null;
-  var downloads = null;
+  var downloads = BrowserDownloads;
 
-  function newDocId() {
-    if (db) { try { return db.collection('harvests').doc().id; } catch (e) {} }
-    return 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  }
+  function newDocId() { return db.collection('harvests').doc().id; }
 
   function blank() {
     var h = rid('hh');
     return {
       id: newDocId(), name: 'Récolte ' + new Date().getFullYear(), days: 2,
-      households: [{ id: h, name: 'Foyer 1', olives: '0' }],
-      workers: [{ id: rid('w'), name: 'Cueilleur 1', household: h, hours: ['0', '0'] }],
+      households: [{ id: h, name: 'Foyer 1', olives: '' }],
+      workers: [{ id: rid('w'), name: '', household: h, hours: ['', ''] }],
       weight: '50', price: '1,00', yield: '16'
     };
   }
@@ -297,13 +425,13 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     var maxH = ws.reduce(function (m, w) { return Math.max(m, Array.isArray(w.hours) ? w.hours.length : 0); }, 0);
     var days = Math.min(MAX_DAYS, Math.max(1, Math.round(Number(d.days)) || maxH || 1));
     var households = (Array.isArray(d.households) ? d.households : []).filter(function (h) { return h && typeof h === 'object'; }).map(function (h) {
-      return { id: String(h.id || rid('hh')), name: String(h.name == null ? '' : h.name), olives: toFr(h.olives == null ? '0' : h.olives) };
+      return { id: String(h.id || rid('hh')), name: String(h.name == null ? '' : h.name), olives: toFr(h.olives == null ? '' : h.olives) };
     });
-    if (!households.length) households.push({ id: rid('hh'), name: 'Foyer 1', olives: '0' });
+    if (!households.length) households.push({ id: rid('hh'), name: 'Foyer 1', olives: '' });
     var ids = households.map(function (h) { return h.id; });
     var workers = ws.map(function (w) {
-      var hours = (Array.isArray(w.hours) ? w.hours : []).map(function (x) { return toFr(x == null ? '0' : x); });
-      while (hours.length < days) hours.push('0');
+      var hours = (Array.isArray(w.hours) ? w.hours : []).map(function (x) { return toFr(x == null ? '' : x); });
+      while (hours.length < days) hours.push('');
       hours.length = days;
       var hh = String(w.household);
       return { id: String(w.id || rid('w')), name: String(w.name == null ? '' : w.name), household: ids.indexOf(hh) >= 0 ? hh : ids[0], hours: hours };
@@ -326,7 +454,7 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
   }
 
   function saveLocal() {
-    try { localStorage.setItem(LS_KEY, JSON.stringify({ lastId: state.id, draft: serialize(state) })); } catch (e) {}
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ lastId: state.id })); } catch (e) {}
   }
   function readLocal() {
     try { var o = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }
@@ -343,37 +471,33 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     else setStatus('Nouvelle récolte, enregistrée dès votre première modification');
   }
 
-  var saveTimer = null, savePromise = null, dirty = false, retried = false;
+  var saveTimer = null, savePromise = null, dirty = false;
   function scheduleSave() {
     saveLocal();
-    if (mode !== 'db' || !canWrite) { restingStatus(); return; }
+    if (mode !== 'db') { restingStatus(); return; }
     dirty = true;
     setStatus('Enregistrement…');
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(function () { saveTimer = null; flush(); }, 1000);
+    saveTimer = setTimeout(function () { saveTimer = null; flush(); }, 700);
   }
   async function flush() {
     if (savePromise) await savePromise;
-    if (!dirty || mode !== 'db' || !canWrite) return;
+    if (!dirty || mode !== 'db') return;
     dirty = false;
     var id = state.id, body = serialize(state);
     savePromise = (async function () {
       try {
         await db.doc('harvests/' + id).set(body);
-        docs[id] = body; retried = false;
+        docs[id] = body;
         renderHarvestSelect();
         if (state.id === id && !dirty) setStatus('Enregistré sur cet appareil', 'ok');
       } catch (e) {
-        var code = e && e.code;
-        if (code === 'invalid_argument') { canWrite = false; restingStatus(); }
-        else if (code === 'quota_exceeded') { dirty = true; setStatus('Stockage plein. Supprimez une ancienne récolte, puis réessayez.', 'bad'); }
-        else if (code === 'unavailable' && !retried) { retried = true; dirty = true; setTimeout(flush, 1500 + Math.random() * 1500); }
-        else { dirty = true; setStatus('Enregistrement impossible dans ce navigateur (navigation privée ?).', 'bad'); }
+        setStatus('Enregistrement impossible dans ce navigateur (navigation privée ?).', 'bad');
       }
     })();
     await savePromise;
     savePromise = null;
-    if (dirty && !saveTimer && !retried) flush();
+    if (dirty && !saveTimer) flush();
   }
   async function flushNow() {
     if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
@@ -381,17 +505,17 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
   }
 
   function arm(btn, label, action) {
-    if (btn.dataset.armed === '1') { action(); return; }
+    if (btn.dataset.armed === '1') { disarm(btn); action(); return; }
     btn.dataset.armed = '1';
     btn.dataset.label = btn.textContent;
     btn.textContent = label;
     btn.classList.add('armed');
-    setTimeout(function () {
-      if (!btn.isConnected || btn.dataset.armed !== '1') return;
-      btn.dataset.armed = '';
-      btn.textContent = btn.dataset.label;
-      btn.classList.remove('armed');
-    }, 4000);
+    setTimeout(function () { if (btn.isConnected && btn.dataset.armed === '1') disarm(btn); }, 4000);
+  }
+  function disarm(btn) {
+    btn.dataset.armed = '';
+    if (btn.dataset.label) btn.textContent = btn.dataset.label;
+    btn.classList.remove('armed');
   }
 
   function workerHtml(w) {
@@ -401,10 +525,11 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     var who = esc(w.name.trim() || 'ce cueilleur');
     return '<div class="worker">' +
       '<div class="w-top"><input class="txt" type="text" id="w-' + w.id + '-name" data-kind="w-name" data-id="' + w.id + '" value="' + esc(w.name) + '" placeholder="Nom du cueilleur" aria-label="Nom du cueilleur">' +
-      '<button type="button" class="quiet" data-act="remove-w" data-id="' + w.id + '" aria-label="Retirer ' + who + '">Retirer</button></div>' +
+      '<span class="w-total" id="w-' + w.id + '-total"></span>' +
+      '<button type="button" class="quiet icon-btn" data-act="remove-w" data-id="' + w.id + '" aria-label="Retirer ' + who + '" title="Retirer">✕</button></div>' +
       '<div class="w-hours">' + w.hours.map(function (v, d) {
-        return '<label class="mini" for="w-' + w.id + '-h' + d + '"><span>Jour ' + (d + 1) + '</span><input class="num" type="text" inputmode="decimal" id="w-' + w.id + '-h' + d + '" data-kind="w-hours" data-id="' + w.id + '" data-day="' + d + '" value="' + esc(v) + '"></label>';
-      }).join('') + '<span class="w-total" id="w-' + w.id + '-total"></span></div>' +
+        return '<label class="mini" for="w-' + w.id + '-h' + d + '"><span>Jour ' + (d + 1) + ' (h)</span><input class="num" type="text" inputmode="decimal" placeholder="0" id="w-' + w.id + '-h' + d + '" data-kind="w-hours" data-id="' + w.id + '" data-day="' + d + '" value="' + esc(v) + '"></label>';
+      }).join('') + '</div>' +
       '<label class="w-move" for="w-' + w.id + '-hh"><span>Foyer</span><select id="w-' + w.id + '-hh" data-kind="w-hh" data-id="' + w.id + '">' + opts + '</select></label>' +
       '</div>';
   }
@@ -416,7 +541,7 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
       return '<section class="card" aria-label="' + esc(hhName(h)) + '">' +
         '<div class="hh-top"><input class="txt name-input" type="text" id="hh-' + h.id + '-name" data-kind="hh-name" data-id="' + h.id + '" value="' + esc(h.name) + '" placeholder="Nom du foyer" aria-label="Nom du foyer">' +
         (single ? '' : '<button type="button" class="quiet" data-act="remove-hh" data-id="' + h.id + '">Retirer</button>') + '</div>' +
-        '<div class="row"><label for="hh-' + h.id + '-olives">Olives de leurs arbres</label><span class="unit"><input class="num" type="text" inputmode="decimal" id="hh-' + h.id + '-olives" data-kind="hh-olives" data-id="' + h.id + '" value="' + esc(h.olives) + '"><span>kg</span></span></div>' +
+        '<div class="row"><label for="hh-' + h.id + '-olives">Olives de leurs arbres</label><span class="unit"><input class="num" type="text" inputmode="decimal" placeholder="0" id="hh-' + h.id + '-olives" data-kind="hh-olives" data-id="' + h.id + '" value="' + esc(h.olives) + '"><span>kg</span></span></div>' +
         '<div class="workers">' + (members.length ? members.map(workerHtml).join('') : '<p class="hint" style="border-top:1px solid var(--line);padding-top:12px">Aucun cueilleur ici. Ce foyer reçoit quand même sa part pour les olives.</p>') + '</div>' +
         '<div class="hh-foot"><button type="button" class="add" data-act="add-w" data-id="' + h.id + '">+ Ajouter un cueilleur</button><span class="chip" id="hh-' + h.id + '-hours"></span></div>' +
         '<p class="err" id="err-' + h.id + '" hidden></p>' +
@@ -487,7 +612,11 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     else if (!yOk) sErr.textContent = 'Indiquez un rendement entre 1 et 40 litres pour 100 kg. La plupart des récoltes donnent entre 12 et 20.';
     sErr.hidden = price.ok && yOk;
     valid = valid && price.ok && yOk;
-    if (!valid) { lastReport = null; return false; }
+    if (!valid) {
+      lastReport = null;
+      $('live-chips').innerHTML = '<span class="hint">Corrigez les chiffres en rouge pour voir le partage.</span>';
+      return false;
+    }
 
     var totO = res.reduce(function (s, r) { return s + r.olives; }, 0);
     var totH = res.reduce(function (s, r) { return s + r.hours; }, 0);
@@ -499,14 +628,15 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     $('res-weight').textContent = wo + NBSP + '% olives · ' + ww + NBSP + '% travail';
 
     if (totO <= 0) {
-      $('bars').innerHTML = ''; $('rows').innerHTML = ''; $('foot').innerHTML = '';
+      $('bars').innerHTML = ''; $('rows').innerHTML = ''; $('foot').innerHTML = ''; $('res-cards').innerHTML = '';
       $('empty').hidden = false; $('nohours').hidden = true; $('per-litre').textContent = '';
+      $('live-chips').innerHTML = '<span class="hint">Indiquez le poids des olives pour voir le partage.</span>';
       lastReport = null;
       return true;
     }
     $('empty').hidden = true;
     $('nohours').hidden = totH > 0;
-    $('per-litre').textContent = oil > 0 ? eur.format(mill / oil) + ' le litre pour tout le monde' : '';
+    $('per-litre').textContent = oil > 0 ? eur.format(mill / oil) + ' le litre pour tous' : '';
 
     res.forEach(function (r) {
       r.oS = r.olives / totO;
@@ -516,14 +646,25 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
       r.oil = r.share * oil; r.pays = r.share * mill;
     });
 
+    $('live-chips').innerHTML = res.map(function (r) {
+      return '<span class="pill"><span>' + esc(r.name) + '</span><b>' + pct(r.share) + '</b></span>';
+    }).join('');
+
     $('bars').innerHTML = res.map(function (r) {
       var g = r.fromO * 100, rp = r.fromW * 100;
       return '<div><div class="bar-head"><strong>' + esc(r.name) + '</strong><span class="pct">' + pct(r.share) + '</span></div>' +
         '<div class="track" role="img" aria-label="' + esc(r.name) + ' : ' + dec(g) + ' % grâce aux olives et ' + dec(rp) + ' % grâce au travail, ' + pct(r.share) + ' au total">' +
-        (g > 0 ? '<div class="seg g" style="width:' + g + '%">' + (g >= 7 ? dec(g) : '') + '</div>' : '') +
-        (rp > 0 ? '<div class="seg r' + (g > 0 ? '' : ' first') + '" style="width:calc(' + rp + '% - ' + (g > 0 ? 2 : 0) + 'px)">' + (rp >= 7 ? dec(rp) : '') + '</div>' : '') +
+        (g > 0 ? '<div class="seg g" style="width:' + g + '%">' + (g >= 9 ? dec(g) : '') + '</div>' : '') +
+        (rp > 0 ? '<div class="seg r' + (g > 0 ? '' : ' first') + '" style="width:calc(' + rp + '% - ' + (g > 0 ? 2 : 0) + 'px)">' + (rp >= 9 ? dec(rp) : '') + '</div>' : '') +
         '</div></div>';
     }).join('');
+
+    $('res-cards').innerHTML = res.map(function (r) {
+      return '<div class="res-card"><div class="top"><strong>' + esc(r.name) + '</strong><span class="big">' + pct(r.share) + '</span></div>' +
+        '<div class="meta"><span>Huile <b>' + fmt(r.oil, 1) + ' L</b></span><span>Paie <b>' + eur.format(r.pays) + '</b></span></div>' +
+        '<div class="meta small"><span>' + pct(r.oS) + ' des olives</span><span>' + pct(r.hS) + ' des heures</span></div></div>';
+    }).join('') +
+      '<div class="res-card total"><div class="meta"><span>Total <b>' + fmt(totO, 1) + ' kg</b></span><span><b>' + fmt(totH, 1) + ' h</b></span><span><b>' + fmt(oil, 1) + ' L</b></span><span><b>' + eur.format(mill) + '</b></span></div></div>';
 
     $('rows').innerHTML = res.map(function (r) {
       return '<tr><td>' + esc(r.name) + '</td><td>' + pct(r.oS) + '</td><td>' + pct(r.hS) + '</td><td class="share">' + pct(r.share) + '</td><td>' + fmt(r.oil, 1) + ' L</td><td>' + eur.format(r.pays) + '</td></tr>';
@@ -545,7 +686,7 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
   }
 
   function changed() {
-    if (!$('export-pdf').disabled) $('pdf-status').textContent = '';
+    $('pdf-status').textContent = '';
     if (recompute()) scheduleSave();
     else setStatus('Corrigez les chiffres en rouge pour enregistrer', 'bad');
   }
@@ -574,7 +715,7 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     var w = state.workers.find(function (x) { return x.id === t.dataset.id; });
     if (!w) return;
     if (t.value === '__new') {
-      var h = { id: rid('hh'), name: w.name.trim() ? 'Foyer de ' + w.name.trim() : 'Nouveau foyer', olives: '0' };
+      var h = { id: rid('hh'), name: w.name.trim() ? 'Foyer de ' + w.name.trim() : 'Nouveau foyer', olives: '' };
       state.households.push(h);
       w.household = h.id;
     } else w.household = t.value;
@@ -588,7 +729,7 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     var id = b.dataset.id, act = b.dataset.act;
     if (act === 'add-w') {
       var nw = { id: rid('w'), name: '', household: id, hours: [] };
-      for (var i = 0; i < state.days; i++) nw.hours.push('0');
+      for (var i = 0; i < state.days; i++) nw.hours.push('');
       state.workers.push(nw);
       renderEditor(); changed();
       $('w-' + nw.id + '-name').focus();
@@ -604,14 +745,14 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
         renderEditor(); changed();
       };
       if (!n && parse(h.olives).v === 0) doRemove();
-      else arm(b, n ? 'Retirer avec ' + n + (n === 1 ? ' cueilleur' : ' cueilleurs') + ' ?' : 'Appuyez à nouveau pour retirer', doRemove);
+      else arm(b, n ? 'Retirer avec ' + n + (n === 1 ? ' cueilleur' : ' cueilleurs') + ' ?' : 'Appuyez à nouveau', doRemove);
     }
   });
 
   $('add-household').addEventListener('click', function () {
-    var h = { id: rid('hh'), name: 'Foyer ' + (state.households.length + 1), olives: '0' };
+    var h = { id: rid('hh'), name: 'Foyer ' + (state.households.length + 1), olives: '' };
     var w = { id: rid('w'), name: '', household: h.id, hours: [] };
-    for (var i = 0; i < state.days; i++) w.hours.push('0');
+    for (var i = 0; i < state.days; i++) w.hours.push('');
     state.households.push(h); state.workers.push(w);
     renderEditor(); changed();
     var el = $('hh-' + h.id + '-name'); el.focus(); el.select();
@@ -620,7 +761,7 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
   $('days-plus').addEventListener('click', function () {
     if (state.days >= MAX_DAYS) return;
     state.days += 1;
-    state.workers.forEach(function (w) { w.hours.push('0'); });
+    state.workers.forEach(function (w) { w.hours.push(''); });
     renderEditor(); changed();
   });
   $('days-minus').addEventListener('click', function (e) {
@@ -629,17 +770,17 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     var drop = function () {
       state.days -= 1;
       state.workers.forEach(function (w) { w.hours.length = state.days; });
-      var btn = $('days-minus'); btn.dataset.armed = ''; btn.textContent = '−'; btn.classList.remove('armed');
       renderEditor(); changed();
     };
     var used = state.workers.some(function (w) { return parse(w.hours[last]).v > 0; });
-    if (used) arm(e.currentTarget, 'Retirer le jour ' + (last + 1) + ' ?', drop); else drop();
+    if (used) { arm(e.currentTarget, '−', drop); setStatus('Le jour ' + (last + 1) + ' contient des heures. Appuyez à nouveau sur − pour le retirer.', 'bad'); } else drop();
   });
 
   $('weight').addEventListener('input', function (e) { state.weight = e.target.value; changed(); });
   $('price').addEventListener('input', function (e) { state.price = e.target.value; changed(); });
   $('yield').addEventListener('input', function (e) { state.yield = e.target.value; changed(); });
   $('preset').addEventListener('click', function () { state.weight = '50'; $('weight').value = '50'; changed(); });
+  $('live-more').addEventListener('click', function () { setView('results'); window.scrollTo(0, 0); });
   $('harvest-name').addEventListener('input', function (e) {
     state.name = e.target.value;
     var opt = $('harvest-select').querySelector('option[value="' + CSS.escape(state.id) + '"]');
@@ -664,27 +805,37 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     while (names.indexOf(name) >= 0) { name = 'Récolte ' + year + ' (' + n + ')'; n++; }
     state = {
       id: newDocId(), name: name, days: state.days,
-      households: state.households.map(function (h) { return { id: h.id, name: h.name, olives: '0' }; }),
-      workers: state.workers.map(function (w) { return { id: w.id, name: w.name, household: w.household, hours: w.hours.map(function () { return '0'; }) }; }),
+      households: state.households.map(function (h) { return { id: h.id, name: h.name, olives: '' }; }),
+      workers: state.workers.map(function (w) { return { id: w.id, name: w.name, household: w.household, hours: w.hours.map(function () { return ''; }) }; }),
       weight: state.weight, price: state.price, yield: state.yield
     };
     renderAll();
     saveLocal();
-    if (mode === 'db' && canWrite) { dirty = true; await flush(); }
+    dirty = true; await flush();
     $('harvest-name').focus();
+  });
+
+  $('reset-form').addEventListener('click', function (e) {
+    arm(e.currentTarget, 'Appuyez à nouveau pour vider', function () {
+      var h = rid('hh'), hrs = [];
+      for (var i = 0; i < state.days; i++) hrs.push('');
+      state.households = [{ id: h, name: '', olives: '' }];
+      state.workers = [{ id: rid('w'), name: '', household: h, hours: hrs }];
+      renderEditor();
+      changed();
+      var el = $('hh-' + h + '-name'); if (el) el.focus();
+    });
   });
 
   $('delete-harvest').addEventListener('click', function (e) {
     arm(e.currentTarget, 'Appuyez à nouveau pour supprimer', async function () {
-      var btn = $('delete-harvest'); btn.dataset.armed = ''; btn.textContent = btn.dataset.label || 'Supprimer cette récolte'; btn.classList.remove('armed');
       if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
       dirty = false;
       if (savePromise) await savePromise;
       var id = state.id;
-      if (mode === 'db' && docs[id]) {
-        if (!canWrite) { setStatus('Lecture seule. Seul le propriétaire peut supprimer des récoltes.', 'bad'); return; }
+      if (docs[id]) {
         try { await db.doc('harvests/' + id).delete(); }
-        catch (err) { setStatus('Suppression impossible pour le moment. Réessayez dans un instant.', 'bad'); return; }
+        catch (err) { setStatus('Suppression impossible dans ce navigateur.', 'bad'); return; }
       }
       delete docs[id];
       var rest = Object.keys(docs).sort(function (a, b) { return (docs[a].updatedAt || '') < (docs[b].updatedAt || '') ? 1 : -1; });
@@ -696,7 +847,6 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     });
   });
 
-  /*PDF-START*/
   function pdfText(s) { return String(s).replace(/[  ]/g, ' '); }
 
   function buildPdf(r) {
@@ -803,13 +953,11 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
     T(doc.splitTextToSize(pdfText('Méthode : la part de chaque foyer combine sa part des olives (pondérée à ' + r.wo + ' %) et sa part des heures (pondérée à ' + r.ww + " %). Le moulin facture au poids des olives, et la facture est partagée dans les mêmes proportions que l'huile, si bien que chacun paie le même prix par litre. Les litres sont une estimation fondée sur le rendement indiqué."), W), M, y);
     return doc;
   }
-  /*PDF-END*/
 
   $('export-pdf').addEventListener('click', async function () {
     var st = $('pdf-status');
     st.className = 'status';
-    if (!lastReport) { st.textContent = 'Indiquez le poids des olives et corrigez les chiffres en rouge avant d\'exporter.'; st.className = 'status bad'; return; }
-    if (!downloads) { st.textContent = "L'export PDF n'est pas disponible dans cette vue."; st.className = 'status bad'; return; }
+    if (!lastReport) { st.textContent = "Indiquez le poids des olives et corrigez les chiffres en rouge avant d'exporter."; st.className = 'status bad'; return; }
     var btn = $('export-pdf');
     btn.disabled = true;
     st.textContent = 'Préparation du PDF…';
@@ -819,96 +967,25 @@ table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabu
       await downloads.save({ filename: fname, data: blob });
       st.textContent = 'PDF prêt'; st.className = 'status ok';
     } catch (err) {
-      var code = err && err.code;
       st.className = 'status bad';
-      if (code === 'declined') { st.textContent = 'Export annulé'; st.className = 'status'; }
-      else if (code === 'rate_limited') st.textContent = 'Une demande est déjà ouverte. Réessayez dans un instant.';
-      else if (code === 'nolib') st.textContent = 'Le PDF n\'a pas pu être préparé. Rechargez la page et réessayez.';
-      else if (code === 'too_large') st.textContent = 'Le PDF est trop volumineux pour cette destination.';
-      else st.textContent = "L'export PDF n'est pas disponible dans cette vue.";
+      st.textContent = err && err.code === 'nolib' ? "Le PDF n'a pas pu être préparé. Vérifiez la connexion, rechargez la page et réessayez." : "L'export PDF a échoué. Réessayez.";
     }
     btn.disabled = false;
   });
 
-  function within(p, ms) {
-    return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej({ code: 'timeout' }); }, ms); })]);
-  }
-
-  function seed() {
-    return {
-      'harvest-2026': {
-        name: 'Récolte 2026', days: 2,
-        households: [{ id: 'hh-a', name: 'Foyer A', olives: 300 }, { id: 'hh-ours', name: 'Notre foyer', olives: 30 }, { id: 'hh-b', name: 'Foyer B', olives: 100 }],
-        workers: [{ id: 'w-a', name: 'A', household: 'hh-a', hours: [14, 12] }, { id: 'w-me', name: 'Moi', household: 'hh-ours', hours: [14, 12] }, { id: 'w-wife', name: 'Ma femme', household: 'hh-ours', hours: [10, 12] }, { id: 'w-b', name: 'B', household: 'hh-b', hours: [10, 12] }],
-        weight: 50, price: 1, yield: 16, updatedAt: '2026-11-02T06:35:00.000Z'
-      }
-    };
-  }
-
-  var LocalDB = (function () {
-    var KEY = 'harvest-split-store-v1';
-    function load() { try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); return o && typeof o === 'object' && o.harvests ? o : null; } catch (e) { return null; } }
-    function store(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
-    return {
-      collection: function () {
-        var q = {
-          doc: function () { return { id: 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }; },
-          orderBy: function () { return q; },
-          limit: function () { return q; },
-          get: function () {
-            var o = load();
-            if (!o) { o = { harvests: seed() }; try { store(o); } catch (e) {} }
-            return Promise.resolve({ docs: Object.keys(o.harvests).map(function (id) { return { id: id, exists: true, data: function () { return o.harvests[id]; } }; }) });
-          }
-        };
-        return q;
-      },
-      doc: function (path) {
-        var id = path.split('/')[1];
-        return {
-          set: function (body) { return new Promise(function (res, rej) { try { var o = load() || { harvests: {} }; o.harvests[id] = body; store(o); res(); } catch (e) { rej({ code: 'storage' }); } }); },
-          delete: function () { return new Promise(function (res, rej) { try { var o = load() || { harvests: {} }; delete o.harvests[id]; store(o); res(); } catch (e) { rej({ code: 'storage' }); } }); }
-        };
-      }
-    };
-  })();
-
-  var BrowserDownloads = {
-    save: function (req) {
-      var url = URL.createObjectURL(req.data);
-      var a = document.createElement('a');
-      a.href = url; a.download = req.filename; a.rel = 'noopener';
-      document.body.appendChild(a); a.click();
-      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 4000);
-      return Promise.resolve({ status: 'saved' });
-    }
-  };
-
   async function start() {
     var local = readLocal();
-    db = LocalDB;
-    downloads = BrowserDownloads;
     try {
       var snap = await db.collection('harvests').orderBy('updatedAt', 'desc').limit(200).get();
       snap.docs.forEach(function (d) { if (d.exists) docs[d.id] = d.data(); });
       mode = 'db';
     } catch (e) { mode = 'local'; }
-    if (mode === 'db') {
-      var ids = Object.keys(docs).sort(function (a, b) { return (docs[a].updatedAt || '') < (docs[b].updatedAt || '') ? 1 : -1; });
-      var pick = local && local.lastId && docs[local.lastId] ? local.lastId : ids[0];
-      state = pick ? normalize(docs[pick], pick) : blank();
-    } else {
-      state = local && local.draft ? normalize(local.draft, local.lastId) : blank();
-    }
+    var ids = Object.keys(docs).sort(function (a, b) { return (docs[a].updatedAt || '') < (docs[b].updatedAt || '') ? 1 : -1; });
+    var pick = local && local.lastId && docs[local.lastId] ? local.lastId : ids[0];
+    state = pick ? normalize(docs[pick], pick) : blank();
     $('loading').hidden = true;
-    $('harvest-bar').hidden = false;
     $('app').hidden = false;
     renderAll();
-    if (mode !== 'db') $('delete-harvest').textContent = 'Effacer cette récolte';
-    if (!downloads) {
-      $('export-pdf').disabled = true;
-      $('pdf-status').textContent = "L'export PDF n'est pas disponible dans cette vue.";
-    }
   }
 
   start();
