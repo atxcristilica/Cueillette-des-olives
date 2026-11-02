@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Partage de l'huile d'olive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: harvest bar on top; two-column workbench below (households and settings left, live split right); one column on phones */
+:root {
+  --bg: #F5F6F1;
+  --surface: #FFFFFF;
+  --ink: #1D2217;
+  --muted: #5B6352;
+  --line: #DADED0;
+  --green: #586B26;
+  --ripe: #6C3D69;
+  --on-seg: #FFFFFF;
+  --danger: #A8261E;
+  --focus: #586B26;
+  --track: #ECEEE5;
+  --font-display: "Alegreya", Georgia, "Times New Roman", serif;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131611; --surface: #1B1F18; --ink: #E8EBE0; --muted: #A2A996; --line: #31372B;
+    --green: #A3B860; --ripe: #C68FC2; --on-seg: #131611; --danger: #F08A80; --focus: #A3B860; --track: #252A21;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131611; --surface: #1B1F18; --ink: #E8EBE0; --muted: #A2A996; --line: #31372B;
+  --green: #A3B860; --ripe: #C68FC2; --on-seg: #131611; --danger: #F08A80; --focus: #A3B860; --track: #252A21;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+header { display: flex; flex-direction: column; gap: 6px; }
+.eyebrow { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 0; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 6vw, 42px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-weight: 700; font-size: 22px; margin: 0; text-wrap: balance; }
+h1 input.title-input {
+  font: inherit; color: inherit; background: transparent; border: 0; border-bottom: 2px dashed transparent;
+  border-radius: 0; padding: 0 0 2px; margin: 0; min-height: 0; width: 100%; min-width: 0;
+}
+h1 input.title-input:hover { border-bottom-color: var(--line); }
+h1 input.title-input:focus-visible { outline: none; border-bottom-color: var(--green); }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (min-width: 900px) { .grid { grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); } }
+.col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.section-head { display: flex; flex-direction: column; gap: 4px; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.chip { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+label, .lbl { font-size: 14px; color: var(--muted); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 10px 12px; flex-wrap: wrap; }
+.unit { display: inline-flex; align-items: center; gap: 6px; }
+.unit span { font-size: 14px; color: var(--muted); }
+input[type="text"], select {
+  font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-height: 40px;
+}
+input.num { width: 5.5rem; text-align: right; font-variant-numeric: tabular-nums; }
+input.txt { width: 100%; min-width: 0; }
+select { width: 100%; min-width: 0; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+input[aria-invalid="true"] { border-color: var(--danger); }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.hb-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@media (min-width: 640px) { .hb-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.hh-top, .w-top { display: flex; gap: 8px; align-items: center; }
+.name-input {
+  font-family: var(--font-display) !important; font-weight: 700; font-size: 21px !important;
+  flex: 1; min-width: 0; border-color: transparent !important; background: transparent !important; padding-left: 6px; margin-left: -6px;
+}
+.name-input:hover { border-color: var(--line) !important; }
+.workers { display: flex; flex-direction: column; }
+.worker { border-top: 1px solid var(--line); padding-block: 12px; display: flex; flex-direction: column; gap: 8px; }
+.w-hours { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.mini { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.mini input { width: 4.4rem; }
+.w-total { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; padding-bottom: 9px; margin-left: auto; }
+.w-move { display: flex; align-items: center; gap: 8px; }
+.w-move span { font-size: 13px; white-space: nowrap; }
+.hh-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 12px; }
+.err { color: var(--danger); font-size: 13px; margin: 0; }
+.hint { font-size: 14px; color: var(--muted); margin: 0; max-width: 64ch; }
+input[type="range"] { width: 100%; accent-color: var(--green); }
+.weight-read { font-size: 15px; font-variant-numeric: tabular-nums; }
+.weight-read b { font-weight: 600; }
+.stepper { display: inline-flex; align-items: center; gap: 8px; }
+.stepper output { min-width: 4.5rem; text-align: center; font-variant-numeric: tabular-nums; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button {
+  font: inherit; font-size: 14px; color: var(--ink); background: transparent; border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 14px; cursor: pointer; min-height: 40px;
+}
+button:hover { border-color: var(--muted); }
+button:disabled { opacity: 0.5; cursor: default; }
+button.primary { background: var(--green); border-color: var(--green); color: var(--on-seg); font-weight: 600; }
+button.quiet { border-color: transparent; color: var(--muted); padding-inline: 10px; }
+button.quiet:hover { border-color: var(--line); color: var(--ink); }
+button.add { border-style: dashed; color: var(--green); font-weight: 600; }
+button.armed { border-color: var(--danger) !important; color: var(--danger) !important; }
+.status { font-size: 14px; color: var(--muted); }
+.status.ok { color: var(--green); }
+.status.bad { color: var(--danger); }
+.totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+@media (min-width: 560px) { .totals { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.totals div { display: flex; flex-direction: column; }
+.totals .lbl { font-size: 13px; }
+.totals .val { font-family: var(--font-display); font-weight: 700; font-size: 24px; font-variant-numeric: tabular-nums lining-nums; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.sw.g { background: var(--green); }
+.sw.r { background: var(--ripe); }
+.bars { display: flex; flex-direction: column; gap: 14px; }
+.bar-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.bar-head strong { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.bar-head .pct { font-family: var(--font-display); font-weight: 700; font-size: 20px; font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+.track {
+  position: relative; height: 26px; border-radius: 6px; background: var(--track); display: flex; overflow: hidden;
+  background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(25% - 1px), var(--line) calc(25% - 1px), var(--line) 25%);
+}
+.seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--on-seg); white-space: nowrap; overflow: hidden; transition: width 0.25s ease; }
+.seg.g { background: var(--green); }
+.seg.r { background: var(--ripe); margin-left: 2px; }
+.seg.r.first { margin-left: 0; }
+.scale { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; }
+table.split { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 15px; min-width: 480px; }
+.split th { font-size: 13px; font-weight: 600; color: var(--muted); text-align: right; padding: 8px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.split td { text-align: right; padding: 9px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.split th:first-child, .split td:first-child { text-align: left; padding-left: 0; white-space: normal; }
+.split td.share { font-weight: 600; }
+.split tfoot td { border-bottom: 0; font-weight: 600; }
+.note { font-size: 14px; color: var(--muted); margin: 0; max-width: 64ch; }
+@media (prefers-reduced-motion: reduce) { .seg { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Calculateur de récolte d'olives</p>
+    <h1><input type="text" id="page-title" class="title-input" value="Partage de l'huile d'olive" aria-label="Titre de la page, modifiable" title="Cliquez pour modifier le titre" spellcheck="false"></h1>
+    <p class="lede">Indiquez qui a cueilli, combien d'heures, et combien de kilos viennent des arbres de chaque foyer. L'huile et la facture du moulin se répartissent au fil de la saisie, et chaque récolte est conservée dans ce navigateur pour les années suivantes. Le titre se modifie en cliquant dessus.</p>
+  </header>
+
+  <section class="card" id="loading">
+    <p class="hint">Chargement de vos récoltes enregistrées…</p>
+  </section>
+
+  <section class="card" id="harvest-bar" aria-label="Récolte" hidden>
+    <div class="hb-grid">
+      <label class="field" for="harvest-select"><span>Récoltes enregistrées</span><select id="harvest-select"></select></label>
+      <label class="field" for="harvest-name"><span>Nom de la récolte</span><input class="txt" type="text" id="harvest-name"></label>
+    </div>
+    <div class="row">
+      <span class="status" id="save-status" aria-live="polite"></span>
+      <div class="btns"><button type="button" id="new-harvest">Nouvelle récolte</button><button type="button" class="quiet" id="delete-harvest">Supprimer cette récolte</button></div>
+    </div>
+    <p class="hint">Une nouvelle récolte reprend les mêmes foyers et cueilleurs, avec tous les chiffres remis à zéro. Les récoltes sont enregistrées dans ce navigateur, sur cet appareil.</p>
+  </section>
+
+  <div class="grid" id="app" hidden>
+    <div class="col">
+      <div class="section-head">
+        <h2>Foyers et cueilleurs</h2>
+        <p class="hint">Chaque foyer apporte les olives de ses propres arbres. Le menu « Foyer » de chaque cueilleur permet de le déplacer dans un autre foyer ou dans un nouveau foyer à lui.</p>
+      </div>
+      <div class="col" id="households"></div>
+      <div class="btns"><button type="button" class="add" id="add-household">+ Ajouter un foyer</button></div>
+
+      <section class="card" aria-labelledby="set-title">
+        <div class="card-head"><h2 id="set-title">Pondération</h2></div>
+        <div class="row"><span class="lbl">Jours de récolte</span>
+          <span class="stepper"><button type="button" id="days-minus" aria-label="Retirer un jour">−</button><output id="days-count" aria-live="polite">2 jours</output><button type="button" id="days-plus" aria-label="Ajouter un jour">+</button></span>
+        </div>
+        <div class="row"><label for="weight">Olives ou travail</label><span class="weight-read" id="weight-read"><b>50 %</b> olives · <b>50 %</b> travail</span></div>
+        <input type="range" id="weight" min="0" max="100" step="5" value="50" aria-describedby="weight-hint">
+        <p class="hint" id="weight-hint">50 % correspond au partage traditionnel « à moitié », où la cueillette compte autant que la propriété des arbres. Glissez vers la gauche pour donner plus de poids au travail.</p>
+        <div class="row"><label for="price">Prix du moulin</label><span class="unit"><input class="num" type="text" inputmode="decimal" id="price" value="1,00"><span>€ par kg d'olives</span></span></div>
+        <div class="row"><label for="yield">Rendement attendu</label><span class="unit"><input class="num" type="text" inputmode="decimal" id="yield" value="16"><span>L pour 100 kg</span></span></div>
+        <p class="err" id="err-s" hidden></p>
+        <div class="btns"><button type="button" id="preset">Remettre à 50/50</button></div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="card" aria-labelledby="res-title">
+        <div class="card-head"><h2 id="res-title">Le partage</h2><span class="chip" id="res-weight"></span></div>
+        <div class="totals">
+          <div><span class="lbl">Olives</span><span class="val" id="tot-olives">0 kg</span></div>
+          <div><span class="lbl">Heures</span><span class="val" id="tot-hours">0 h</span></div>
+          <div><span class="lbl">Huile, env.</span><span class="val" id="tot-oil">0 L</span></div>
+          <div><span class="lbl">Facture du moulin</span><span class="val" id="tot-mill">0,00 €</span></div>
+        </div>
+        <div class="legend"><span><i class="sw g"></i>Part gagnée par les olives</span><span><i class="sw r"></i>Part gagnée par le travail</span></div>
+        <div class="bars" id="bars" aria-live="polite"></div>
+        <div class="scale" aria-hidden="true"><span>0 %</span><span>25 %</span><span>50 %</span><span>75 %</span><span>100 %</span></div>
+        <p class="note" id="empty" hidden>Indiquez le poids des olives pour voir le partage.</p>
+      </section>
+
+      <section class="card" aria-labelledby="tbl-title">
+        <div class="card-head"><h2 id="tbl-title">Qui reçoit quoi</h2><span class="chip" id="per-litre"></span></div>
+        <div class="table-wrap">
+          <table class="split">
+            <thead><tr><th>Foyer</th><th>% olives</th><th>% heures</th><th>Part</th><th>Huile</th><th>Paie</th></tr></thead>
+            <tbody id="rows"></tbody>
+            <tfoot><tr id="foot"></tr></tfoot>
+          </table>
+        </div>
+        <p class="note">La part de chaque foyer combine sa part des olives et sa part des heures, selon la pondération choisie. Le moulin facture au poids des olives et la facture est partagée dans les mêmes proportions, si bien que chacun paie le même prix par litre.</p>
+        <p class="note" id="nohours" hidden>Aucune heure saisie, le partage se fait donc uniquement sur les olives.</p>
+        <div class="btns"><button type="button" class="primary" id="export-pdf">Exporter en PDF</button><span class="status" id="pdf-status" aria-live="polite"></span></div>
+        <p class="hint">Le PDF reprend le partage, le tableau et le détail des heures, prêt à imprimer ou à envoyer par e-mail.</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+(function () {
+  try { document.documentElement.lang = 'fr'; } catch (e) {}
+  var $ = function (id) { return document.getElementById(id); };
+  var LS_KEY = 'harvest-split-v2';
+  var MAX_DAYS = 7;
+  var NBSP = ' ';
+  var eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var rid = function (p) { return p + Math.random().toString(36).slice(2, 9); };
+  var fmt = function (v, d) { return (Math.round(v * Math.pow(10, d)) / Math.pow(10, d)).toLocaleString('fr-FR', { maximumFractionDigits: d }); };
+  var dec = function (v) { return v.toFixed(1).replace('.', ','); };
+  var pct = function (v) { return dec(v * 100) + NBSP + '%'; };
+  var toFr = function (x) { return String(x).replace('.', ','); };
+  var parse = function (s) {
+    var raw = String(s == null ? '' : s).trim().replace(',', '.');
+    if (raw === '') return { v: 0, ok: true };
+    var v = Number(raw);
+    return { v: v, ok: Number.isFinite(v) && v >= 0 };
+  };
+  var TITLE_KEY = 'harvest-split-title';
+  var DEFAULT_TITLE = "Partage de l'huile d'olive";
+  var pageTitle = function () { return $('page-title').value.trim() || DEFAULT_TITLE; };
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem(TITLE_KEY); } catch (e) {}
+    if (t) $('page-title').value = t;
+    document.title = pageTitle();
+    $('page-title').addEventListener('input', function () {
+      document.title = pageTitle();
+      try { localStorage.setItem(TITLE_KEY, $('page-title').value.trim()); } catch (e) {}
+    });
+    $('page-title').addEventListener('blur', function () { if (!$('page-title').value.trim()) $('page-title').value = DEFAULT_TITLE; });
+    $('page-title').addEventListener('keydown', function (e) { if (e.key === 'Enter') e.target.blur(); });
+  })();
+  var hhName = function (h) { return h.name.trim() || 'Foyer sans nom'; };
+  var daysLabel = function (n) { return n + (n === 1 ? ' jour' : ' jours'); };
+
+  var db = null, mode = 'local', canWrite = true;
+  var docs = {};
+  var state = null;
+  var lastReport = null;
+  var downloads = null;
+
+  function newDocId() {
+    if (db) { try { return db.collection('harvests').doc().id; } catch (e) {} }
+    return 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  function blank() {
+    var h = rid('hh');
+    return {
+      id: newDocId(), name: 'Récolte ' + new Date().getFullYear(), days: 2,
+      households: [{ id: h, name: 'Foyer 1', olives: '0' }],
+      workers: [{ id: rid('w'), name: 'Cueilleur 1', household: h, hours: ['0', '0'] }],
+      weight: '50', price: '1,00', yield: '16'
+    };
+  }
+
+  function normalize(d, id) {
+    d = d && typeof d === 'object' ? d : {};
+    var ws = Array.isArray(d.workers) ? d.workers.filter(function (w) { return w && typeof w === 'object'; }) : [];
+    var maxH = ws.reduce(function (m, w) { return Math.max(m, Array.isArray(w.hours) ? w.hours.length : 0); }, 0);
+    var days = Math.min(MAX_DAYS, Math.max(1, Math.round(Number(d.days)) || maxH || 1));
+    var households = (Array.isArray(d.households) ? d.households : []).filter(function (h) { return h && typeof h === 'object'; }).map(function (h) {
+      return { id: String(h.id || rid('hh')), name: String(h.name == null ? '' : h.name), olives: toFr(h.olives == null ? '0' : h.olives) };
+    });
+    if (!households.length) households.push({ id: rid('hh'), name: 'Foyer 1', olives: '0' });
+    var ids = households.map(function (h) { return h.id; });
+    var workers = ws.map(function (w) {
+      var hours = (Array.isArray(w.hours) ? w.hours : []).map(function (x) { return toFr(x == null ? '0' : x); });
+      while (hours.length < days) hours.push('0');
+      hours.length = days;
+      var hh = String(w.household);
+      return { id: String(w.id || rid('w')), name: String(w.name == null ? '' : w.name), household: ids.indexOf(hh) >= 0 ? hh : ids[0], hours: hours };
+    });
+    return {
+      id: id || newDocId(), name: String(d.name || 'Récolte'), days: days, households: households, workers: workers,
+      weight: String(d.weight == null ? '50' : d.weight), price: toFr(d.price == null ? '1,00' : d.price), yield: toFr(d.yield == null ? '16' : d.yield)
+    };
+  }
+
+  function serialize(s) {
+    var n = function (x) { return parse(x).v; };
+    return {
+      name: s.name, days: s.days,
+      households: s.households.map(function (h) { return { id: h.id, name: h.name, olives: n(h.olives) }; }),
+      workers: s.workers.map(function (w) { return { id: w.id, name: w.name, household: w.household, hours: w.hours.map(n) }; }),
+      weight: Number(s.weight), price: n(s.price), yield: n(s.yield),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  function saveLocal() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ lastId: state.id, draft: serialize(state) })); } catch (e) {}
+  }
+  function readLocal() {
+    try { var o = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); return o && typeof o === 'object' ? o : null; } catch (e) { return null; }
+  }
+
+  function setStatus(text, tone) {
+    var el = $('save-status');
+    el.textContent = text;
+    el.className = 'status' + (tone ? ' ' + tone : '');
+  }
+  function restingStatus() {
+    if (mode !== 'db') setStatus('Enregistrement impossible dans ce navigateur', 'bad');
+    else if (docs[state.id]) setStatus('Enregistré sur cet appareil', 'ok');
+    else setStatus('Nouvelle récolte, enregistrée dès votre première modification');
+  }
+
+  var saveTimer = null, savePromise = null, dirty = false, retried = false;
+  function scheduleSave() {
+    saveLocal();
+    if (mode !== 'db' || !canWrite) { restingStatus(); return; }
+    dirty = true;
+    setStatus('Enregistrement…');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () { saveTimer = null; flush(); }, 1000);
+  }
+  async function flush() {
+    if (savePromise) await savePromise;
+    if (!dirty || mode !== 'db' || !canWrite) return;
+    dirty = false;
+    var id = state.id, body = serialize(state);
+    savePromise = (async function () {
+      try {
+        await db.doc('harvests/' + id).set(body);
+        docs[id] = body; retried = false;
+        renderHarvestSelect();
+        if (state.id === id && !dirty) setStatus('Enregistré sur cet appareil', 'ok');
+      } catch (e) {
+        var code = e && e.code;
+        if (code === 'invalid_argument') { canWrite = false; restingStatus(); }
+        else if (code === 'quota_exceeded') { dirty = true; setStatus('Stockage plein. Supprimez une ancienne récolte, puis réessayez.', 'bad'); }
+        else if (code === 'unavailable' && !retried) { retried = true; dirty = true; setTimeout(flush, 1500 + Math.random() * 1500); }
+        else { dirty = true; setStatus('Enregistrement impossible dans ce navigateur (navigation privée ?).', 'bad'); }
+      }
+    })();
+    await savePromise;
+    savePromise = null;
+    if (dirty && !saveTimer && !retried) flush();
+  }
+  async function flushNow() {
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+    await flush();
+  }
+
+  function arm(btn, label, action) {
+    if (btn.dataset.armed === '1') { action(); return; }
+    btn.dataset.armed = '1';
+    btn.dataset.label = btn.textContent;
+    btn.textContent = label;
+    btn.classList.add('armed');
+    setTimeout(function () {
+      if (!btn.isConnected || btn.dataset.armed !== '1') return;
+      btn.dataset.armed = '';
+      btn.textContent = btn.dataset.label;
+      btn.classList.remove('armed');
+    }, 4000);
+  }
+
+  function workerHtml(w) {
+    var opts = state.households.map(function (h) {
+      return '<option value="' + esc(h.id) + '" data-hh="' + esc(h.id) + '"' + (h.id === w.household ? ' selected' : '') + '>' + esc(hhName(h)) + '</option>';
+    }).join('') + '<option value="__new">Un nouveau foyer à lui</option>';
+    var who = esc(w.name.trim() || 'ce cueilleur');
+    return '<div class="worker">' +
+      '<div class="w-top"><input class="txt" type="text" id="w-' + w.id + '-name" data-kind="w-name" data-id="' + w.id + '" value="' + esc(w.name) + '" placeholder="Nom du cueilleur" aria-label="Nom du cueilleur">' +
+      '<button type="button" class="quiet" data-act="remove-w" data-id="' + w.id + '" aria-label="Retirer ' + who + '">Retirer</button></div>' +
+      '<div class="w-hours">' + w.hours.map(function (v, d) {
+        return '<label class="mini" for="w-' + w.id + '-h' + d + '"><span>Jour ' + (d + 1) + '</span><input class="num" type="text" inputmode="decimal" id="w-' + w.id + '-h' + d + '" data-kind="w-hours" data-id="' + w.id + '" data-day="' + d + '" value="' + esc(v) + '"></label>';
+      }).join('') + '<span class="w-total" id="w-' + w.id + '-total"></span></div>' +
+      '<label class="w-move" for="w-' + w.id + '-hh"><span>Foyer</span><select id="w-' + w.id + '-hh" data-kind="w-hh" data-id="' + w.id + '">' + opts + '</select></label>' +
+      '</div>';
+  }
+
+  function renderEditor() {
+    var single = state.households.length === 1;
+    $('households').innerHTML = state.households.map(function (h) {
+      var members = state.workers.filter(function (w) { return w.household === h.id; });
+      return '<section class="card" aria-label="' + esc(hhName(h)) + '">' +
+        '<div class="hh-top"><input class="txt name-input" type="text" id="hh-' + h.id + '-name" data-kind="hh-name" data-id="' + h.id + '" value="' + esc(h.name) + '" placeholder="Nom du foyer" aria-label="Nom du foyer">' +
+        (single ? '' : '<button type="button" class="quiet" data-act="remove-hh" data-id="' + h.id + '">Retirer</button>') + '</div>' +
+        '<div class="row"><label for="hh-' + h.id + '-olives">Olives de leurs arbres</label><span class="unit"><input class="num" type="text" inputmode="decimal" id="hh-' + h.id + '-olives" data-kind="hh-olives" data-id="' + h.id + '" value="' + esc(h.olives) + '"><span>kg</span></span></div>' +
+        '<div class="workers">' + (members.length ? members.map(workerHtml).join('') : '<p class="hint" style="border-top:1px solid var(--line);padding-top:12px">Aucun cueilleur ici. Ce foyer reçoit quand même sa part pour les olives.</p>') + '</div>' +
+        '<div class="hh-foot"><button type="button" class="add" data-act="add-w" data-id="' + h.id + '">+ Ajouter un cueilleur</button><span class="chip" id="hh-' + h.id + '-hours"></span></div>' +
+        '<p class="err" id="err-' + h.id + '" hidden></p>' +
+        '</section>';
+    }).join('');
+    $('days-count').textContent = daysLabel(state.days);
+    $('days-minus').disabled = state.days <= 1;
+    $('days-plus').disabled = state.days >= MAX_DAYS;
+  }
+
+  function renderSettings() {
+    $('weight').value = state.weight;
+    $('price').value = state.price;
+    $('yield').value = state.yield;
+    $('harvest-name').value = state.name;
+  }
+
+  function renderHarvestSelect() {
+    var sel = $('harvest-select');
+    var items = Object.keys(docs).map(function (id) { return { id: id, name: docs[id].name || 'Récolte', at: docs[id].updatedAt || '' }; });
+    items.sort(function (a, b) { return a.at < b.at ? 1 : a.at > b.at ? -1 : 0; });
+    if (!docs[state.id]) items.unshift({ id: state.id, name: state.name || 'Récolte' });
+    sel.innerHTML = items.map(function (it) {
+      var label = it.id === state.id ? (state.name || 'Récolte') : it.name;
+      return '<option value="' + esc(it.id) + '"' + (it.id === state.id ? ' selected' : '') + '>' + esc(label) + '</option>';
+    }).join('');
+    sel.disabled = items.length < 2;
+  }
+
+  function renderAll() {
+    renderSettings();
+    renderEditor();
+    renderHarvestSelect();
+    recompute();
+    restingStatus();
+  }
+
+  function markInvalid(id, ok) { var el = $(id); if (el) el.setAttribute('aria-invalid', ok ? 'false' : 'true'); }
+
+  function recompute() {
+    var valid = true;
+    var res = state.households.map(function (h) {
+      var ok = true;
+      var o = parse(h.olives); markInvalid('hh-' + h.id + '-olives', o.ok); ok = ok && o.ok;
+      var hours = 0;
+      state.workers.forEach(function (w) {
+        if (w.household !== h.id) return;
+        var t = 0;
+        w.hours.forEach(function (v, d) { var p = parse(v); markInvalid('w-' + w.id + '-h' + d, p.ok); ok = ok && p.ok; if (p.ok) t += p.v; });
+        var te = $('w-' + w.id + '-total'); if (te) te.textContent = fmt(t, 1) + ' h';
+        hours += t;
+      });
+      var he = $('hh-' + h.id + '-hours'); if (he) he.textContent = fmt(hours, 1) + ' h au total';
+      var err = $('err-' + h.id);
+      if (err) { err.hidden = ok; err.textContent = ok ? '' : 'Utilisez des nombres de 0 ou plus, par exemple 12 ou 12,5.'; }
+      valid = valid && ok;
+      return { name: hhName(h), olives: o.ok ? o.v : 0, hours: hours };
+    });
+
+    var w = Number(state.weight) / 100;
+    var wo = Math.round(w * 100), ww = Math.round((1 - w) * 100);
+    $('weight-read').innerHTML = '<b>' + wo + NBSP + '%</b> olives · <b>' + ww + NBSP + '%</b> travail';
+    var price = parse(state.price), yld = parse(state.yield);
+    var yOk = yld.ok && yld.v > 0 && yld.v <= 40;
+    markInvalid('price', price.ok); markInvalid('yield', yOk);
+    var sErr = $('err-s');
+    if (!price.ok) sErr.textContent = 'Indiquez un prix de 0 ou plus, par exemple 0,90.';
+    else if (!yOk) sErr.textContent = 'Indiquez un rendement entre 1 et 40 litres pour 100 kg. La plupart des récoltes donnent entre 12 et 20.';
+    sErr.hidden = price.ok && yOk;
+    valid = valid && price.ok && yOk;
+    if (!valid) { lastReport = null; return false; }
+
+    var totO = res.reduce(function (s, r) { return s + r.olives; }, 0);
+    var totH = res.reduce(function (s, r) { return s + r.hours; }, 0);
+    var oil = totO * yld.v / 100, mill = totO * price.v;
+    $('tot-olives').textContent = fmt(totO, 1) + ' kg';
+    $('tot-hours').textContent = fmt(totH, 1) + ' h';
+    $('tot-oil').textContent = fmt(oil, 1) + ' L';
+    $('tot-mill').textContent = eur.format(mill);
+    $('res-weight').textContent = wo + NBSP + '% olives · ' + ww + NBSP + '% travail';
+
+    if (totO <= 0) {
+      $('bars').innerHTML = ''; $('rows').innerHTML = ''; $('foot').innerHTML = '';
+      $('empty').hidden = false; $('nohours').hidden = true; $('per-litre').textContent = '';
+      lastReport = null;
+      return true;
+    }
+    $('empty').hidden = true;
+    $('nohours').hidden = totH > 0;
+    $('per-litre').textContent = oil > 0 ? eur.format(mill / oil) + ' le litre pour tout le monde' : '';
+
+    res.forEach(function (r) {
+      r.oS = r.olives / totO;
+      r.hS = totH > 0 ? r.hours / totH : r.oS;
+      r.fromO = w * r.oS; r.fromW = (1 - w) * r.hS;
+      r.share = r.fromO + r.fromW;
+      r.oil = r.share * oil; r.pays = r.share * mill;
+    });
+
+    $('bars').innerHTML = res.map(function (r) {
+      var g = r.fromO * 100, rp = r.fromW * 100;
+      return '<div><div class="bar-head"><strong>' + esc(r.name) + '</strong><span class="pct">' + pct(r.share) + '</span></div>' +
+        '<div class="track" role="img" aria-label="' + esc(r.name) + ' : ' + dec(g) + ' % grâce aux olives et ' + dec(rp) + ' % grâce au travail, ' + pct(r.share) + ' au total">' +
+        (g > 0 ? '<div class="seg g" style="width:' + g + '%">' + (g >= 7 ? dec(g) : '') + '</div>' : '') +
+        (rp > 0 ? '<div class="seg r' + (g > 0 ? '' : ' first') + '" style="width:calc(' + rp + '% - ' + (g > 0 ? 2 : 0) + 'px)">' + (rp >= 7 ? dec(rp) : '') + '</div>' : '') +
+        '</div></div>';
+    }).join('');
+
+    $('rows').innerHTML = res.map(function (r) {
+      return '<tr><td>' + esc(r.name) + '</td><td>' + pct(r.oS) + '</td><td>' + pct(r.hS) + '</td><td class="share">' + pct(r.share) + '</td><td>' + fmt(r.oil, 1) + ' L</td><td>' + eur.format(r.pays) + '</td></tr>';
+    }).join('');
+    $('foot').innerHTML = '<td>Total</td><td>' + fmt(totO, 1) + ' kg</td><td>' + fmt(totH, 1) + ' h</td><td>100' + NBSP + '%</td><td>' + fmt(oil, 1) + ' L</td><td>' + eur.format(mill) + '</td>';
+
+    var hhById = {};
+    state.households.forEach(function (h) { hhById[h.id] = h; });
+    lastReport = {
+      name: state.name.trim() || 'Récolte', wo: wo, ww: ww, totO: totO, totH: totH, oil: oil, mill: mill,
+      perL: oil > 0 ? mill / oil : null, yieldV: yld.v, priceV: price.v, days: state.days, rows: res,
+      workers: state.households.reduce(function (acc, h) {
+        return acc.concat(state.workers.filter(function (x) { return x.household === h.id; }).map(function (x) {
+          return { name: x.name.trim() || 'Cueilleur', hh: hhName(h), hours: x.hours.map(function (v) { return parse(v).v; }) };
+        }));
+      }, [])
+    };
+    return true;
+  }
+
+  function changed() {
+    if (!$('export-pdf').disabled) $('pdf-status').textContent = '';
+    if (recompute()) scheduleSave();
+    else setStatus('Corrigez les chiffres en rouge pour enregistrer', 'bad');
+  }
+
+  var hhBox = $('households');
+  hhBox.addEventListener('input', function (e) {
+    var t = e.target, id = t.dataset.id, kind = t.dataset.kind;
+    if (!kind || kind === 'w-hh') return;
+    if (kind === 'hh-name' || kind === 'hh-olives') {
+      var h = state.households.find(function (x) { return x.id === id; });
+      if (!h) return;
+      if (kind === 'hh-name') {
+        h.name = t.value;
+        document.querySelectorAll('option[data-hh="' + id + '"]').forEach(function (o) { o.textContent = hhName(h); });
+      } else h.olives = t.value;
+    } else if (kind === 'w-name' || kind === 'w-hours') {
+      var w = state.workers.find(function (x) { return x.id === id; });
+      if (!w) return;
+      if (kind === 'w-name') w.name = t.value; else w.hours[Number(t.dataset.day)] = t.value;
+    }
+    changed();
+  });
+  hhBox.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.dataset.kind !== 'w-hh') return;
+    var w = state.workers.find(function (x) { return x.id === t.dataset.id; });
+    if (!w) return;
+    if (t.value === '__new') {
+      var h = { id: rid('hh'), name: w.name.trim() ? 'Foyer de ' + w.name.trim() : 'Nouveau foyer', olives: '0' };
+      state.households.push(h);
+      w.household = h.id;
+    } else w.household = t.value;
+    renderEditor();
+    changed();
+    var sel = $('w-' + w.id + '-hh'); if (sel) sel.focus();
+  });
+  hhBox.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-act]');
+    if (!b) return;
+    var id = b.dataset.id, act = b.dataset.act;
+    if (act === 'add-w') {
+      var nw = { id: rid('w'), name: '', household: id, hours: [] };
+      for (var i = 0; i < state.days; i++) nw.hours.push('0');
+      state.workers.push(nw);
+      renderEditor(); changed();
+      $('w-' + nw.id + '-name').focus();
+    } else if (act === 'remove-w') {
+      state.workers = state.workers.filter(function (x) { return x.id !== id; });
+      renderEditor(); changed();
+    } else if (act === 'remove-hh') {
+      var h = state.households.find(function (x) { return x.id === id; });
+      var n = state.workers.filter(function (x) { return x.household === id; }).length;
+      var doRemove = function () {
+        state.households = state.households.filter(function (x) { return x.id !== id; });
+        state.workers = state.workers.filter(function (x) { return x.household !== id; });
+        renderEditor(); changed();
+      };
+      if (!n && parse(h.olives).v === 0) doRemove();
+      else arm(b, n ? 'Retirer avec ' + n + (n === 1 ? ' cueilleur' : ' cueilleurs') + ' ?' : 'Appuyez à nouveau pour retirer', doRemove);
+    }
+  });
+
+  $('add-household').addEventListener('click', function () {
+    var h = { id: rid('hh'), name: 'Foyer ' + (state.households.length + 1), olives: '0' };
+    var w = { id: rid('w'), name: '', household: h.id, hours: [] };
+    for (var i = 0; i < state.days; i++) w.hours.push('0');
+    state.households.push(h); state.workers.push(w);
+    renderEditor(); changed();
+    var el = $('hh-' + h.id + '-name'); el.focus(); el.select();
+  });
+
+  $('days-plus').addEventListener('click', function () {
+    if (state.days >= MAX_DAYS) return;
+    state.days += 1;
+    state.workers.forEach(function (w) { w.hours.push('0'); });
+    renderEditor(); changed();
+  });
+  $('days-minus').addEventListener('click', function (e) {
+    if (state.days <= 1) return;
+    var last = state.days - 1;
+    var drop = function () {
+      state.days -= 1;
+      state.workers.forEach(function (w) { w.hours.length = state.days; });
+      var btn = $('days-minus'); btn.dataset.armed = ''; btn.textContent = '−'; btn.classList.remove('armed');
+      renderEditor(); changed();
+    };
+    var used = state.workers.some(function (w) { return parse(w.hours[last]).v > 0; });
+    if (used) arm(e.currentTarget, 'Retirer le jour ' + (last + 1) + ' ?', drop); else drop();
+  });
+
+  $('weight').addEventListener('input', function (e) { state.weight = e.target.value; changed(); });
+  $('price').addEventListener('input', function (e) { state.price = e.target.value; changed(); });
+  $('yield').addEventListener('input', function (e) { state.yield = e.target.value; changed(); });
+  $('preset').addEventListener('click', function () { state.weight = '50'; $('weight').value = '50'; changed(); });
+  $('harvest-name').addEventListener('input', function (e) {
+    state.name = e.target.value;
+    var opt = $('harvest-select').querySelector('option[value="' + CSS.escape(state.id) + '"]');
+    if (opt) opt.textContent = state.name || 'Récolte';
+    changed();
+  });
+
+  $('harvest-select').addEventListener('change', async function (e) {
+    var id = e.target.value;
+    if (id === state.id || !docs[id]) return;
+    await flushNow();
+    state = normalize(docs[id], id);
+    saveLocal();
+    renderAll();
+  });
+
+  $('new-harvest').addEventListener('click', async function () {
+    await flushNow();
+    var year = new Date().getFullYear();
+    var names = Object.keys(docs).map(function (k) { return docs[k].name; }).concat([state.name]);
+    var name = 'Récolte ' + year, n = 2;
+    while (names.indexOf(name) >= 0) { name = 'Récolte ' + year + ' (' + n + ')'; n++; }
+    state = {
+      id: newDocId(), name: name, days: state.days,
+      households: state.households.map(function (h) { return { id: h.id, name: h.name, olives: '0' }; }),
+      workers: state.workers.map(function (w) { return { id: w.id, name: w.name, household: w.household, hours: w.hours.map(function () { return '0'; }) }; }),
+      weight: state.weight, price: state.price, yield: state.yield
+    };
+    renderAll();
+    saveLocal();
+    if (mode === 'db' && canWrite) { dirty = true; await flush(); }
+    $('harvest-name').focus();
+  });
+
+  $('delete-harvest').addEventListener('click', function (e) {
+    arm(e.currentTarget, 'Appuyez à nouveau pour supprimer', async function () {
+      var btn = $('delete-harvest'); btn.dataset.armed = ''; btn.textContent = btn.dataset.label || 'Supprimer cette récolte'; btn.classList.remove('armed');
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+      dirty = false;
+      if (savePromise) await savePromise;
+      var id = state.id;
+      if (mode === 'db' && docs[id]) {
+        if (!canWrite) { setStatus('Lecture seule. Seul le propriétaire peut supprimer des récoltes.', 'bad'); return; }
+        try { await db.doc('harvests/' + id).delete(); }
+        catch (err) { setStatus('Suppression impossible pour le moment. Réessayez dans un instant.', 'bad'); return; }
+      }
+      delete docs[id];
+      var rest = Object.keys(docs).sort(function (a, b) { return (docs[a].updatedAt || '') < (docs[b].updatedAt || '') ? 1 : -1; });
+      state = rest.length ? normalize(docs[rest[0]], rest[0]) : blank();
+      saveLocal();
+      renderAll();
+      if (!rest.length) setStatus('Récolte supprimée. En voici une nouvelle.');
+      else setStatus('Récolte supprimée', 'ok');
+    });
+  });
+
+  /*PDF-START*/
+  function pdfText(s) { return String(s).replace(/[  ]/g, ' '); }
+
+  function buildPdf(r) {
+    var J = window.jspdf && window.jspdf.jsPDF;
+    if (!J) throw { code: 'nolib' };
+    var doc = new J({ unit: 'mm', format: 'a4' });
+    var M = 18, W = 174, y = 20;
+    var INK = [29, 34, 23], MUTED = [91, 99, 82], LINE = [218, 222, 208], GREEN = [88, 107, 38], RIPE = [108, 61, 105], TRACK = [236, 238, 229], PANEL = [245, 246, 241];
+    var color = function (c) { doc.setTextColor(c[0], c[1], c[2]); };
+    var fill = function (c) { doc.setFillColor(c[0], c[1], c[2]); };
+    var T = function (str, x, yy, o) { doc.text(Array.isArray(str) ? str.map(pdfText) : pdfText(str), x, yy, o || {}); };
+    var ensure = function (h) { if (y + h > 282) { doc.addPage(); y = 20; } };
+    var rule = function () { doc.setDrawColor(LINE[0], LINE[1], LINE[2]); doc.setLineWidth(0.25); doc.line(M, y, M + W, y); };
+    var heading = function (t) { ensure(16); doc.setFont('times', 'bold'); doc.setFontSize(15); color(INK); T(t, M, y); y += 6; };
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); color(MUTED);
+    T(pageTitle().toUpperCase(), M, y); y += 9;
+    doc.setFont('times', 'bold'); doc.setFontSize(24); color(INK);
+    T(doc.splitTextToSize(pdfText(r.name), W), M, y); y += 7;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); color(MUTED);
+    T('Établi le ' + new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) + '  ·  Pondération : ' + r.wo + ' % olives / ' + r.ww + ' % travail', M, y);
+    y += 7;
+
+    var boxes = [['Olives', fmt(r.totO, 1) + ' kg'], ['Heures', fmt(r.totH, 1) + ' h'], ['Huile, env.', fmt(r.oil, 1) + ' L'], ['Facture du moulin', eur.format(r.mill)]];
+    var bw = (W - 12) / 4;
+    boxes.forEach(function (b, i) {
+      var x = M + i * (bw + 4);
+      fill(PANEL); doc.roundedRect(x, y, bw, 17, 2, 2, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); color(MUTED); T(b[0], x + 3.5, y + 6);
+      doc.setFont('times', 'bold'); doc.setFontSize(14); color(INK); T(b[1], x + 3.5, y + 13.5);
+    });
+    y += 23;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); color(MUTED);
+    T(doc.splitTextToSize(pdfText('Rendement : ' + fmt(r.yieldV, 1) + ' L pour 100 kg  ·  Moulin : ' + eur.format(r.priceV) + " par kg d'olives" + (r.perL != null ? '  ·  ' + eur.format(r.perL) + ' le litre pour tout le monde' : '')), W), M, y);
+    y += 11;
+
+    heading('Le partage');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); color(MUTED);
+    fill(GREEN); doc.rect(M, y - 2.6, 3, 3, 'F'); T('Part gagnée par les olives', M + 5, y);
+    fill(RIPE); doc.rect(M + 58, y - 2.6, 3, 3, 'F'); T('Part gagnée par le travail', M + 63, y);
+    y += 7;
+    r.rows.forEach(function (row) {
+      ensure(15);
+      doc.setFontSize(10.5); color(INK);
+      doc.setFont('helvetica', 'bold'); T(doc.splitTextToSize(pdfText(row.name), W - 25)[0], M, y);
+      doc.setFontSize(11); T(pct(row.share), M + W, y, { align: 'right' });
+      y += 2.2;
+      fill(TRACK); doc.rect(M, y, W, 6, 'F');
+      var g = W * row.fromO, rr = W * row.fromW, gap = g > 0 && rr > 0 ? 0.6 : 0;
+      if (g > 0) { fill(GREEN); doc.rect(M, y, g, 6, 'F'); }
+      if (rr > 0) { fill(RIPE); doc.rect(M + g + gap, y, Math.max(0, rr - gap), 6, 'F'); }
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(255, 255, 255);
+      if (g > 14) T(dec(row.fromO * 100), M + g / 2, y + 4.2, { align: 'center' });
+      if (rr > 14) T(dec(row.fromW * 100), M + g + rr / 2, y + 4.2, { align: 'center' });
+      y += 12.5;
+    });
+
+    var table = function (cols, header, rows, total) {
+      ensure(14);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); color(MUTED);
+      var x = M;
+      cols.forEach(function (c, i) { T(header[i], c.left ? x : x + c.w, y + 3.5, { align: c.left ? 'left' : 'right' }); x += c.w; });
+      y += 5.5; rule(); y += 0.5;
+      rows.concat(total ? [total] : []).forEach(function (cells, idx) {
+        var bold = total && idx === rows.length;
+        doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(9.5);
+        var wrapped = cols.map(function (c, i) { return c.left ? doc.splitTextToSize(pdfText(cells[i]), c.w - 2) : [pdfText(cells[i])]; });
+        var n = Math.max.apply(null, wrapped.map(function (l) { return l.length; }));
+        var h = n * 4.3 + 3.4;
+        ensure(h);
+        color(INK);
+        var xx = M;
+        cols.forEach(function (c, i) { doc.text(wrapped[i], c.left ? xx : xx + c.w, y + 4.5, { align: c.left ? 'left' : 'right' }); xx += c.w; });
+        y += h;
+        if (!bold) rule();
+      });
+    };
+
+    y += 2;
+    heading('Qui reçoit quoi');
+    table(
+      [{ w: 40, left: true }, { w: 18 }, { w: 16 }, { w: 19 }, { w: 19 }, { w: 17 }, { w: 18 }, { w: 27 }],
+      ['Foyer', 'Olives', 'Heures', '% olives', '% heures', 'Part', 'Huile', 'Paie'],
+      r.rows.map(function (row) { return [row.name, fmt(row.olives, 1) + ' kg', fmt(row.hours, 1) + ' h', pct(row.oS), pct(row.hS), pct(row.share), fmt(row.oil, 1) + ' L', eur.format(row.pays)]; }),
+      ['Total', fmt(r.totO, 1) + ' kg', fmt(r.totH, 1) + ' h', '100 %', '100 %', '100 %', fmt(r.oil, 1) + ' L', eur.format(r.mill)]
+    );
+
+    if (r.workers.length) {
+      y += 8;
+      heading('Détail des heures');
+      var dw = 68 / r.days;
+      var cols = [{ w: 42, left: true }, { w: 46, left: true }];
+      var head = ['Cueilleur', 'Foyer'];
+      for (var d = 0; d < r.days; d++) { cols.push({ w: dw }); head.push(dw >= 14 ? 'Jour ' + (d + 1) : 'J' + (d + 1)); }
+      cols.push({ w: 18 }); head.push('Total');
+      table(cols, head, r.workers.map(function (wk) {
+        var tot = wk.hours.reduce(function (s, v) { return s + v; }, 0);
+        return [wk.name, wk.hh].concat(wk.hours.map(function (v) { return fmt(v, 1) + ' h'; })).concat([fmt(tot, 1) + ' h']);
+      }), null);
+    }
+
+    y += 8; ensure(22);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); color(MUTED);
+    T(doc.splitTextToSize(pdfText('Méthode : la part de chaque foyer combine sa part des olives (pondérée à ' + r.wo + ' %) et sa part des heures (pondérée à ' + r.ww + " %). Le moulin facture au poids des olives, et la facture est partagée dans les mêmes proportions que l'huile, si bien que chacun paie le même prix par litre. Les litres sont une estimation fondée sur le rendement indiqué."), W), M, y);
+    return doc;
+  }
+  /*PDF-END*/
+
+  $('export-pdf').addEventListener('click', async function () {
+    var st = $('pdf-status');
+    st.className = 'status';
+    if (!lastReport) { st.textContent = 'Indiquez le poids des olives et corrigez les chiffres en rouge avant d\'exporter.'; st.className = 'status bad'; return; }
+    if (!downloads) { st.textContent = "L'export PDF n'est pas disponible dans cette vue."; st.className = 'status bad'; return; }
+    var btn = $('export-pdf');
+    btn.disabled = true;
+    st.textContent = 'Préparation du PDF…';
+    try {
+      var blob = buildPdf(lastReport).output('blob');
+      var fname = (pageTitle() + ' - ' + lastReport.name).replace(/[\\\/:*?"<>|]+/g, '-').slice(0, 120) + '.pdf';
+      await downloads.save({ filename: fname, data: blob });
+      st.textContent = 'PDF prêt'; st.className = 'status ok';
+    } catch (err) {
+      var code = err && err.code;
+      st.className = 'status bad';
+      if (code === 'declined') { st.textContent = 'Export annulé'; st.className = 'status'; }
+      else if (code === 'rate_limited') st.textContent = 'Une demande est déjà ouverte. Réessayez dans un instant.';
+      else if (code === 'nolib') st.textContent = 'Le PDF n\'a pas pu être préparé. Rechargez la page et réessayez.';
+      else if (code === 'too_large') st.textContent = 'Le PDF est trop volumineux pour cette destination.';
+      else st.textContent = "L'export PDF n'est pas disponible dans cette vue.";
+    }
+    btn.disabled = false;
+  });
+
+  function within(p, ms) {
+    return Promise.race([p, new Promise(function (_, rej) { setTimeout(function () { rej({ code: 'timeout' }); }, ms); })]);
+  }
+
+  function seed() {
+    return {
+      'harvest-2026': {
+        name: 'Récolte 2026', days: 2,
+        households: [{ id: 'hh-a', name: 'Foyer A', olives: 300 }, { id: 'hh-ours', name: 'Notre foyer', olives: 30 }, { id: 'hh-b', name: 'Foyer B', olives: 100 }],
+        workers: [{ id: 'w-a', name: 'A', household: 'hh-a', hours: [14, 12] }, { id: 'w-me', name: 'Moi', household: 'hh-ours', hours: [14, 12] }, { id: 'w-wife', name: 'Ma femme', household: 'hh-ours', hours: [10, 12] }, { id: 'w-b', name: 'B', household: 'hh-b', hours: [10, 12] }],
+        weight: 50, price: 1, yield: 16, updatedAt: '2026-11-02T06:35:00.000Z'
+      }
+    };
+  }
+
+  var LocalDB = (function () {
+    var KEY = 'harvest-split-store-v1';
+    function load() { try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); return o && typeof o === 'object' && o.harvests ? o : null; } catch (e) { return null; } }
+    function store(o) { localStorage.setItem(KEY, JSON.stringify(o)); }
+    return {
+      collection: function () {
+        var q = {
+          doc: function () { return { id: 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }; },
+          orderBy: function () { return q; },
+          limit: function () { return q; },
+          get: function () {
+            var o = load();
+            if (!o) { o = { harvests: seed() }; try { store(o); } catch (e) {} }
+            return Promise.resolve({ docs: Object.keys(o.harvests).map(function (id) { return { id: id, exists: true, data: function () { return o.harvests[id]; } }; }) });
+          }
+        };
+        return q;
+      },
+      doc: function (path) {
+        var id = path.split('/')[1];
+        return {
+          set: function (body) { return new Promise(function (res, rej) { try { var o = load() || { harvests: {} }; o.harvests[id] = body; store(o); res(); } catch (e) { rej({ code: 'storage' }); } }); },
+          delete: function () { return new Promise(function (res, rej) { try { var o = load() || { harvests: {} }; delete o.harvests[id]; store(o); res(); } catch (e) { rej({ code: 'storage' }); } }); }
+        };
+      }
+    };
+  })();
+
+  var BrowserDownloads = {
+    save: function (req) {
+      var url = URL.createObjectURL(req.data);
+      var a = document.createElement('a');
+      a.href = url; a.download = req.filename; a.rel = 'noopener';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 4000);
+      return Promise.resolve({ status: 'saved' });
+    }
+  };
+
+  async function start() {
+    var local = readLocal();
+    db = LocalDB;
+    downloads = BrowserDownloads;
+    try {
+      var snap = await db.collection('harvests').orderBy('updatedAt', 'desc').limit(200).get();
+      snap.docs.forEach(function (d) { if (d.exists) docs[d.id] = d.data(); });
+      mode = 'db';
+    } catch (e) { mode = 'local'; }
+    if (mode === 'db') {
+      var ids = Object.keys(docs).sort(function (a, b) { return (docs[a].updatedAt || '') < (docs[b].updatedAt || '') ? 1 : -1; });
+      var pick = local && local.lastId && docs[local.lastId] ? local.lastId : ids[0];
+      state = pick ? normalize(docs[pick], pick) : blank();
+    } else {
+      state = local && local.draft ? normalize(local.draft, local.lastId) : blank();
+    }
+    $('loading').hidden = true;
+    $('harvest-bar').hidden = false;
+    $('app').hidden = false;
+    renderAll();
+    if (mode !== 'db') $('delete-harvest').textContent = 'Effacer cette récolte';
+    if (!downloads) {
+      $('export-pdf').disabled = true;
+      $('pdf-status').textContent = "L'export PDF n'est pas disponible dans cette vue.";
+    }
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>
